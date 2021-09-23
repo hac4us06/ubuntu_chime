@@ -32,6 +32,9 @@ fi
 
 HERE=$(pwd)
 SCRIPT="$(dirname "$(realpath "$0")")"/build
+if [ ! -d "$SCRIPT" ]; then
+    SCRIPT="$(dirname "$SCRIPT")"
+fi
 
 mkdir -p "${TMP}/system" "${TMP}/partitions"
 

@@ -71,6 +71,11 @@ cd "$TMPDOWN"
 
     [ -d "avb" ] || git clone https://android.googlesource.com/platform/external/avb -b android10-gsi --depth 1
 
+    if [ -n "$deviceinfo_kernel_use_dtc_ext" ] && $deviceinfo_kernel_use_dtc_ext; then
+        [ -f "dtc_ext" ] || curl --location https://android.googlesource.com/platform/prebuilts/misc/+/refs/heads/android10-gsi/linux-x86/dtc/dtc?format=TEXT | base64 --decode > dtc_ext
+        chmod +x dtc_ext
+    fi
+
     if [ ! -f "vbmeta.img" ] && [ -n "$deviceinfo_bootimg_append_vbmeta" ] && $deviceinfo_bootimg_append_vbmeta; then
         wget https://dl.google.com/developers/android/qt/images/gsi/vbmeta.img
     fi
@@ -80,6 +85,10 @@ cd "$HERE"
 
 if [ -n "$deviceinfo_kernel_apply_overlay" ] && $deviceinfo_kernel_apply_overlay; then
     "$SCRIPT/build-ufdt-apply-overlay.sh" "${TMPDOWN}"
+fi
+
+if [ -n "$deviceinfo_kernel_use_dtc_ext" ] && $deviceinfo_kernel_use_dtc_ext; then
+    export DTC_EXT="$TMPDOWN/dtc_ext"
 fi
 
 if $deviceinfo_kernel_clang_compile; then

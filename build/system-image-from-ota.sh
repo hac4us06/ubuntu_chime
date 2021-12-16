@@ -209,13 +209,13 @@ do
             case "$2" in
                 system)
                     mkdir -p "$SYSTEM_MOUNTPOINT"
-                    LOOPDEV=$(sudo losetup -f)
+                    LOOPDEV=$(sudo losetup -f) || true
 
-                    if [ ! -e "$LOOPDEV" ]; then
+                    if [ ! -z "$LOOPDEV" ] && [ ! -e "$LOOPDEV" ]; then
                         sudo mknod "$LOOPDEV" b 7 $(echo "$LOOPDEV" | grep -Eo '[0-9]+$')
                         sudo losetup "$LOOPDEV" "$OUT/rootfs.img"
                         sudo mount "$LOOPDEV" "$SYSTEM_MOUNTPOINT/"
-                    else
+                    elif [ ! -z "$LOOPDEV" ]; then
                         sudo mount -o loop "$OUT/rootfs.img" "$SYSTEM_MOUNTPOINT/"
                     fi
                 ;;
@@ -229,8 +229,13 @@ do
         unmount)
             case "$2" in
                 system)
-                    sudo umount "$SYSTEM_MOUNTPOINT"
-                    rmdir "$SYSTEM_MOUNTPOINT"
+                    if [ ! -z "$LOOPDEV" ]; then
+                        sudo umount "$SYSTEM_MOUNTPOINT"
+                        rmdir "$SYSTEM_MOUNTPOINT"
+                    else
+                        mke2fs -t ext4 -O \^metadata_csum "$OUT/rootfs.img" 3000000 -d "$SYSTEM_MOUNTPOINT"
+                        rm -rf "$SYSTEM_MOUNTPOINT"
+                    fi
                     # Create fastboot flashable image
                     img2simg "$OUT/rootfs.img" "$OUT/system.img"
                 ;;

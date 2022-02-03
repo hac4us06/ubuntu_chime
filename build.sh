@@ -1,5 +1,6 @@
 #!/bin/bash
 set -xe
+shopt -s extglob
 
 BUILD_DIR=
 OUT=
@@ -50,8 +51,9 @@ cd "$TMPDOWN"
     [ -d aarch64-linux-android-4.9 ] || git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b pie-gsi --depth 1
     GCC_PATH="$TMPDOWN/aarch64-linux-android-4.9"
     if $deviceinfo_kernel_clang_compile; then
-        [ -d linux-x86 ] || git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android10-gsi --depth 1
-        CLANG_PATH="$TMPDOWN/linux-x86/clang-r353983c"
+        [ -d linux-x86 ] || git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android11-gsi --depth 1
+        CLANG_PATH="$TMPDOWN/linux-x86/clang-r383902"
+        rm -rf "$TMPDOWN/linux-x86/.git" "$TMPDOWN/linux-x86/"!(clang-r383902)
     fi
     if [ "$deviceinfo_arch" == "aarch64" ]; then
         [ -d arm-linux-androideabi-4.9 ] || git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b pie-gsi --depth 1

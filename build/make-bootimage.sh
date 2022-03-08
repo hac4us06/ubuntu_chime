@@ -90,7 +90,7 @@ mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --base $deviceinfo_flash_offse
 
 if [ -n "$deviceinfo_bootimg_partition_size" ]; then
     EXTRA_ARGS=""
-    [ -f "$HERE/rsa4096_vbmeta.pem" ] && EXTRA_ARGS=" --key $HERE/rsa4096_vbmeta.pem --algorithm SHA256_RSA4096"
+    [ -f "$HERE/rsa4096_boot.pem" ] && EXTRA_ARGS=" --key $HERE/rsa4096_boot.pem --algorithm SHA256_RSA4096"
     python2 "$TMPDOWN/avb/avbtool" add_hash_footer --image "$OUT" --partition_name boot --partition_size $deviceinfo_bootimg_partition_size $EXTRA_ARGS
 
     if [ -n "$deviceinfo_bootimg_append_vbmeta" ] && $deviceinfo_bootimg_append_vbmeta; then
@@ -115,7 +115,7 @@ if [ -n "$deviceinfo_has_recovery_partition" ] && $deviceinfo_has_recovery_parti
 
     if [ -n "$deviceinfo_recovery_partition_size" ]; then
         EXTRA_ARGS=""
-        [ -f "$HERE/rsa4096_vbmeta.pem" ] && EXTRA_ARGS=" --key $HERE/rsa4096_vbmeta.pem --algorithm SHA256_RSA4096"
+        [ -f "$HERE/rsa4096_recovery.pem" ] && EXTRA_ARGS=" --key $HERE/rsa4096_recovery.pem --algorithm SHA256_RSA4096"
         python2 "$TMPDOWN/avb/avbtool" add_hash_footer --image "$RECOVERY" --partition_name recovery --partition_size $deviceinfo_recovery_partition_size $EXTRA_ARGS
     fi
 fi

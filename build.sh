@@ -94,6 +94,9 @@ if [ -n "$deviceinfo_kernel_use_dtc_ext" ] && $deviceinfo_kernel_use_dtc_ext; th
 fi
 
 if $deviceinfo_kernel_clang_compile; then
+    if [ -n "$deviceinfo_kernel_use_lld" ] && $deviceinfo_kernel_use_lld; then
+        export LD=ld.ldd
+    fi
     CC=clang \
     CLANG_TRIPLE=${deviceinfo_arch}-linux-gnu- \
     PATH="$CLANG_PATH/bin:$GCC_PATH/bin:$GCC_ARM32_PATH/bin:${PATH}" \

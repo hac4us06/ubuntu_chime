@@ -28,9 +28,12 @@ MAKEOPTS=""
 if [ -n "$CC" ]; then
     MAKEOPTS="CC=$CC"
 fi
+if [ -n "$LD" ]; then
+    MAKEOPTS+=" LD=$LD"
+fi
 
 cd "$KERNEL_DIR"
-make O="$OUT" $deviceinfo_kernel_defconfig
+make O="$OUT" $MAKEOPTS $deviceinfo_kernel_defconfig
 make O="$OUT" $MAKEOPTS -j$(nproc --all)
 make O="$OUT" $MAKEOPTS INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH="$INSTALL_MOD_PATH" modules_install
 ls "$OUT/arch/$ARCH/boot/"*Image*

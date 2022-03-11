@@ -82,11 +82,15 @@ fi
 
 EXTRA_ARGS=""
 
-if [ "$deviceinfo_bootimg_header_version" -eq 2 ]; then
-    EXTRA_ARGS+=" --header_version $deviceinfo_bootimg_header_version --dtb $DTB --dtb_offset $deviceinfo_flash_offset_dtb"
+if [ "$deviceinfo_bootimg_header_version" -le 2 ]; then
+    EXTRA_ARGS+=" --base $deviceinfo_flash_offset_base --kernel_offset $deviceinfo_flash_offset_kernel --ramdisk_offset $deviceinfo_flash_offset_ramdisk --second_offset $deviceinfo_flash_offset_second --tags_offset $deviceinfo_flash_offset_tags --pagesize $deviceinfo_flash_pagesize"
 fi
 
-mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --base $deviceinfo_flash_offset_base --kernel_offset $deviceinfo_flash_offset_kernel --ramdisk_offset $deviceinfo_flash_offset_ramdisk --second_offset $deviceinfo_flash_offset_second --tags_offset $deviceinfo_flash_offset_tags --pagesize $deviceinfo_flash_pagesize --cmdline "$deviceinfo_kernel_cmdline" -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
+if [ "$deviceinfo_bootimg_header_version" -eq 2 ]; then
+    EXTRA_ARGS+=" --dtb $DTB --dtb_offset $deviceinfo_flash_offset_dtb"
+fi
+
+mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
 
 if [ -n "$deviceinfo_bootimg_partition_size" ]; then
     EXTRA_ARGS=""

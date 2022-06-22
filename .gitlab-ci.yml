@@ -41,3 +41,18 @@ devel-flashable:
     paths:
       - out/boot.img
       - out/ubuntu.img
+
+devel-flashable-focal:
+  stage: deploy
+  script:
+    - apt update
+    - apt install -y git img2simg jq sudo wget xz-utils
+    - DEVICE="$(source deviceinfo && echo $deviceinfo_codename)"
+    - ROOTFS_URL="https://ci.ubports.com/job/focal-hybris-rootfs-arm64/job/master/lastSuccessfulBuild/artifact/ubuntu-touch-android9plus-rootfs-arm64.tar.gz" ./build/prepare-fake-ota.sh out/device_${DEVICE}_usrmerge.tar.xz ota
+    - mkdir -p out
+    - ./build/system-image-from-ota.sh ota/ubuntu_command out
+    - mv out/rootfs.img out/ubuntu.img
+  artifacts:
+    paths:
+      - out/boot.img
+      - out/ubuntu.img

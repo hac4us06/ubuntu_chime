@@ -20,11 +20,12 @@ esac
 [ -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ] && RECOVERY_RAMDISK="$HERE/ramdisk-overlay/ramdisk-recovery.img"
 
 if [ -d "$HERE/ramdisk-recovery-overlay" ] && [ -e "$RECOVERY_RAMDISK" ]; then
-    mkdir -p "$HERE/ramdisk-recovery"
+    rm -rf "$TMPDOWN/ramdisk-recovery"
+    mkdir -p "$TMPDOWN/ramdisk-recovery"
 
-    cd "$HERE/ramdisk-recovery"
+    cd "$TMPDOWN/ramdisk-recovery"
     gzip -dc "$RECOVERY_RAMDISK" | cpio -i
-    cp -r "$HERE/ramdisk-recovery-overlay"/* "$HERE/ramdisk-recovery"
+    cp -r "$HERE/ramdisk-recovery-overlay"/* "$TMPDOWN/ramdisk-recovery"
 
     # Set values in prop.default based on deviceinfo
     sed -i 's@^\(ro\.product\.\(vendor\.\)\?brand=\).*$@\1'"$deviceinfo_manufacturer"'@' prop.default
@@ -37,6 +38,7 @@ if [ -d "$HERE/ramdisk-recovery-overlay" ] && [ -e "$RECOVERY_RAMDISK" ]; then
 
     sed -i 's@^\(ro\.product\.\(vendor\.\)\?model=\).*$@\1'"$deviceinfo_name"'@' prop.default
 
+    [ ! -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ] && RECOVERY_RAMDISK="$TMPDOWN/ramdisk-recovery.img-merged"
     find . | cpio -o -H newc | gzip > "$RECOVERY_RAMDISK"
 fi
 
@@ -108,7 +110,6 @@ fi
 
 if [ -n "$deviceinfo_has_recovery_partition" ] && $deviceinfo_has_recovery_partition; then
     RECOVERY="$(dirname "$OUT")/recovery.img"
-    RECOVERY_RAMDISK="$HERE/ramdisk-recovery.img"
     EXTRA_ARGS=""
 
     if [ "$deviceinfo_bootimg_header_version" -eq 2 ]; then

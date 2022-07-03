@@ -86,6 +86,10 @@ elif [ -n "$deviceinfo_dtb" ]; then
     cat $DTBS > $DTB
 fi
 
+if [ -n "$deviceinfo_bootimg_prebuilt_dt" ]; then
+    DT="$HERE/$deviceinfo_bootimg_prebuilt_dt"
+fi
+
 if [ -n "$deviceinfo_prebuilt_dtbo" ]; then
     DTBO="$HERE/$deviceinfo_prebuilt_dtbo"
 elif [ -n "$deviceinfo_dtbo" ]; then
@@ -96,6 +100,10 @@ EXTRA_ARGS=""
 
 if [ "$deviceinfo_bootimg_header_version" -le 2 ]; then
     EXTRA_ARGS+=" --base $deviceinfo_flash_offset_base --kernel_offset $deviceinfo_flash_offset_kernel --ramdisk_offset $deviceinfo_flash_offset_ramdisk --second_offset $deviceinfo_flash_offset_second --tags_offset $deviceinfo_flash_offset_tags --pagesize $deviceinfo_flash_pagesize"
+fi
+
+if [ "$deviceinfo_bootimg_header_version" -eq 0 ] && [ -n "$DT" ]; then
+    EXTRA_ARGS+=" --dt $DT"
 fi
 
 if [ "$deviceinfo_bootimg_header_version" -eq 2 ]; then
@@ -109,12 +117,17 @@ fi
 mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
 
 if [ -n "$deviceinfo_bootimg_partition_size" ]; then
-    EXTRA_ARGS=""
-    [ -f "$HERE/rsa4096_boot.pem" ] && EXTRA_ARGS=" --key $HERE/rsa4096_boot.pem --algorithm SHA256_RSA4096"
-    python2 "$TMPDOWN/avb/avbtool" add_hash_footer --image "$OUT" --partition_name boot --partition_size $deviceinfo_bootimg_partition_size $EXTRA_ARGS
+    if [ "$deviceinfo_bootimg_tailtype" == "SEAndroid" ]
+    then
+        printf 'SEANDROIDENFORCE' >> "$OUT"
+    else
+        EXTRA_ARGS=""
+        [ -f "$HERE/rsa4096_boot.pem" ] && EXTRA_ARGS=" --key $HERE/rsa4096_boot.pem --algorithm SHA256_RSA4096"
+        python2 "$TMPDOWN/avb/avbtool" add_hash_footer --image "$OUT" --partition_name boot --partition_size $deviceinfo_bootimg_partition_size $EXTRA_ARGS
 
-    if [ -n "$deviceinfo_bootimg_append_vbmeta" ] && $deviceinfo_bootimg_append_vbmeta; then
-        python2 "$TMPDOWN/avb/avbtool" append_vbmeta_image --image "$OUT" --partition_size "$deviceinfo_bootimg_partition_size" --vbmeta_image "$TMPDOWN/vbmeta.img"
+        if [ -n "$deviceinfo_bootimg_append_vbmeta" ] && $deviceinfo_bootimg_append_vbmeta; then
+            python2 "$TMPDOWN/avb/avbtool" append_vbmeta_image --image "$OUT" --partition_size "$deviceinfo_bootimg_partition_size" --vbmeta_image "$TMPDOWN/vbmeta.img"
+        fi
     fi
 fi
 
@@ -126,6 +139,10 @@ if [ -n "$deviceinfo_has_recovery_partition" ] && $deviceinfo_has_recovery_parti
         EXTRA_ARGS+=" --header_version $deviceinfo_bootimg_header_version --dtb $DTB --dtb_offset $deviceinfo_flash_offset_dtb"
     fi
 
+    if [ "$deviceinfo_bootimg_header_version" -eq 0 ] && [ -n "$DT" ]; then
+        EXTRA_ARGS+=" --header_version $deviceinfo_bootimg_header_version --dt $DT"
+    fi
+
     if [ -n "$DTBO" ]; then
         EXTRA_ARGS+=" --recovery_dtbo $DTBO"
     fi
@@ -134,7 +151,12 @@ if [ -n "$deviceinfo_has_recovery_partition" ] && $deviceinfo_has_recovery_parti
 
     if [ -n "$deviceinfo_recovery_partition_size" ]; then
         EXTRA_ARGS=""
-        [ -f "$HERE/rsa4096_recovery.pem" ] && EXTRA_ARGS=" --key $HERE/rsa4096_recovery.pem --algorithm SHA256_RSA4096"
-        python2 "$TMPDOWN/avb/avbtool" add_hash_footer --image "$RECOVERY" --partition_name recovery --partition_size $deviceinfo_recovery_partition_size $EXTRA_ARGS
+        if [ "$deviceinfo_bootimg_tailtype" == "SEAndroid" ]
+        then
+            printf 'SEANDROIDENFORCE' >> "$RECOVERY"
+        else
+            [ -f "$HERE/rsa4096_recovery.pem" ] && EXTRA_ARGS=" --key $HERE/rsa4096_recovery.pem --algorithm SHA256_RSA4096"
+            python2 "$TMPDOWN/avb/avbtool" add_hash_footer --image "$RECOVERY" --partition_name recovery --partition_size $deviceinfo_recovery_partition_size $EXTRA_ARGS
+        fi
     fi
 fi

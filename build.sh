@@ -115,6 +115,19 @@ fi
 "$SCRIPT/make-bootimage.sh" "${TMPDOWN}" "${TMPDOWN}/KERNEL_OBJ" "${TMPDOWN}/halium-boot-ramdisk.img" "${TMP}/partitions/boot.img"
 
 cp -av overlay/* "${TMP}/"
+
+INITRC_PATHS="
+${TMP}/system/opt/halium-overlay/system/etc/init
+${TMP}/system/usr/share/halium-overlay/system/etc/init
+${TMP}/system/opt/halium-overlay/vendor/etc/init
+${TMP}/system/usr/share/halium-overlay/vendor/etc/init
+"
+while IFS= read -r path ; do
+    if [ -d "$path" ]; then
+        find "$path" -type f -exec chmod 644 {} \;
+    fi
+done <<< "$INITRC_PATHS"
+
 "$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}"
 # create device tarball for https://wiki.debian.org/UsrMerge rootfs
 "$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}" "true"

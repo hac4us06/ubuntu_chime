@@ -128,6 +128,18 @@ while IFS= read -r path ; do
     fi
 done <<< "$INITRC_PATHS"
 
+BUILDPROP_PATHS="
+${TMP}/system/opt/halium-overlay/system
+${TMP}/system/usr/share/halium-overlay/system
+${TMP}/system/opt/halium-overlay/vendor
+${TMP}/system/usr/share/halium-overlay/vendor
+"
+while IFS= read -r path ; do
+    if [ -d "$path" ]; then
+        find "$path" -type f -name "build.prop" -exec chmod 600 {} \;
+    fi
+done <<< "$BUILDPROP_PATHS"
+
 "$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}"
 # create device tarball for https://wiki.debian.org/UsrMerge rootfs
 "$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}" "true"

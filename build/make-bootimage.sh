@@ -24,22 +24,27 @@ if [ -d "$HERE/ramdisk-recovery-overlay" ] && [ -e "$RECOVERY_RAMDISK" ]; then
     mkdir -p "$TMPDOWN/ramdisk-recovery"
 
     cd "$TMPDOWN/ramdisk-recovery"
-    gzip -dc "$RECOVERY_RAMDISK" | cpio -i
-    cp -r "$HERE/ramdisk-recovery-overlay"/* "$TMPDOWN/ramdisk-recovery"
+    fakeroot -- bash <<EOF
+gzip -dc "$RECOVERY_RAMDISK" | cpio -i
+cp -r "$HERE/ramdisk-recovery-overlay"/* "$TMPDOWN/ramdisk-recovery"
 
-    # Set values in prop.default based on deviceinfo
-    sed -i 's@^\(ro\.product\.\(vendor\.\)\?brand=\).*$@\1'"$deviceinfo_manufacturer"'@' prop.default
-    sed -i 's@^\(ro\.product\.\(vendor\.\)\?manufacturer=\).*$@\1'"$deviceinfo_manufacturer"'@' prop.default
-    sed -i 's@^\(ro\.product\.vendor\.name=\).*$@\1'"$deviceinfo_manufacturer"'@' prop.default
+# Set values in prop.default based on deviceinfo
+echo "#" >> prop.default
+echo "# added by halium-generic-adaptation-build-tools" >> prop.default
+echo "ro.product.brand=$deviceinfo_manufacturer" >> prop.default
+echo "ro.product.device=$deviceinfo_codename" >> prop.default
+echo "ro.product.manufacturer=$deviceinfo_manufacturer" >> prop.default
+echo "ro.product.model=$deviceinfo_name" >> prop.default
+echo "ro.product.name=halium_$deviceinfo_codename" >> prop.default
 
-    sed -i 's@^\(ro\.product\.\(vendor\.\)\?device=\).*$@\1'"$deviceinfo_codename"'@' prop.default
-    sed -i 's@^\(ro\.product\.name=\).*$@\1'"$deviceinfo_codename"'@' prop.default
-    sed -i 's@^\(ro\.build\.product=\).*$@\1'"$deviceinfo_codename"'@' prop.default
-
-    sed -i 's@^\(ro\.product\.\(vendor\.\)\?model=\).*$@\1'"$deviceinfo_name"'@' prop.default
-
-    [ ! -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ] && RECOVERY_RAMDISK="$TMPDOWN/ramdisk-recovery.img-merged"
-    find . | cpio -o -H newc | gzip > "$RECOVERY_RAMDISK"
+find . | cpio -o -H newc | gzip > "$TMPDOWN/ramdisk-recovery.img-merged"
+EOF
+    if [ ! -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ]; then
+        RECOVERY_RAMDISK="$TMPDOWN/ramdisk-recovery.img-merged"
+    else
+        mv "$HERE/ramdisk-overlay/ramdisk-recovery.img" "$TMPDOWN/ramdisk-recovery.img-original"
+        cp "$TMPDOWN/ramdisk-recovery.img-merged" "$HERE/ramdisk-overlay/ramdisk-recovery.img"
+    fi
 fi
 
 if [ -d "$HERE/ramdisk-overlay" ]; then
@@ -47,6 +52,11 @@ if [ -d "$HERE/ramdisk-overlay" ]; then
     RAMDISK="${RAMDISK}-merged"
     cd "$HERE/ramdisk-overlay"
     find . | cpio -o -H newc | gzip >> "$RAMDISK"
+
+    # Restore unoverlayed recovery ramdisk
+    if [ -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ] && [ -f "$TMPDOWN/ramdisk-recovery.img-original" ]; then
+        mv "$TMPDOWN/ramdisk-recovery.img-original" "$HERE/ramdisk-overlay/ramdisk-recovery.img"
+    fi
 fi
 
 if [ -n "$deviceinfo_kernel_image_name" ]; then

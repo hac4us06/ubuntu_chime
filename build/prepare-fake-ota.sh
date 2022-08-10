@@ -6,7 +6,7 @@ source "${HERE}/deviceinfo"
 # Fetches android9 rootfs and generic system image to prepare flashable image from CI-built device tarball
 URL='https://system-image.ubports.com'
 ROOTFS_URL=${ROOTFS_URL:-'https://ci.ubports.com/job/xenial-hybris-android9-rootfs-arm64/lastSuccessfulBuild/artifact/ubuntu-touch-android9-arm64.tar.gz'}
-OTA_CHANNEL='16.04/arm64/android9/devel'
+OTA_CHANNEL=${OTA_CHANNEL:-'16.04/arm64/android9/devel'}
 
 case "$deviceinfo_bootimg_os_version" in
     9)

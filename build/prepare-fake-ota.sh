@@ -98,7 +98,9 @@ EOF
 mkdir -p system/etc/system-image/config.d
 ln -s ../client.ini system/etc/system-image/config.d/00_default.ini
 ln -s ../channel.ini system/etc/system-image/config.d/01_channel.ini
-tar cvJf "../version.tar.xz" system
+tar cvJf "../version.tar.xz" \
+    --owner=root --group=root \
+    system
 cd -
 rm -r "$OUTPUT/version"
 

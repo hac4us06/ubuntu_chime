@@ -140,9 +140,15 @@ while IFS= read -r path ; do
     fi
 done <<< "$BUILDPROP_PATHS"
 
-"$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}"
-# create device tarball for https://wiki.debian.org/UsrMerge rootfs
-"$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}" "true"
+if [ -z "$deviceinfo_use_overlaystore" ]; then
+    "$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}"
+    # create device tarball for https://wiki.debian.org/UsrMerge rootfs
+    "$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}" "usrmerge"
+else
+    "$SCRIPT/build-tarball-mainline.sh" "${deviceinfo_codename}" "${OUT}" "${TMP}" "overlaystore"
+    # create a symlink for _usrmerge variant so that common pipeline just works.
+    ln -sf "device_${deviceinfo_codename}.tar.xz" "${OUT}/device_${deviceinfo_codename}_usrmerge.tar.xz"
+fi
 
 if [ -z "$BUILD_DIR" ]; then
     rm -r "${TMP}"

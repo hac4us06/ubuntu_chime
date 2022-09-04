@@ -18,7 +18,7 @@ if [ "$usrmerge" = "true" ]; then
     # as /lib is symlink to /usr/lib on focal+
     if [ -d system/lib ]; then
         mkdir -p system/usr
-        mv system/lib system/usr/
+        cp -a system/lib system/usr/ && rm -rf system/lib
     fi
 fi
 

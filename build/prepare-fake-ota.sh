@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [[ $(id -u) -ne 0 ]] ; then
+    exec fakeroot -- $0 $*
+fi
+
 HERE=$(pwd)
 source "${HERE}/deviceinfo"
 
@@ -53,7 +57,7 @@ file=$(basename "$ROOTFS_URL")
 wget "$ROOTFS_URL" -P "$OUTPUT"
 mkdir -p "$OUTPUT/rootfs/system"
 cd "$OUTPUT/rootfs"
-sudo tar xpzf "../$file" --numeric-owner -C system
+tar xpzf "../$file" --numeric-owner -C system
 
 # Enable SSH and USB tethering for debugging in devel-flashable builds
 echo "start on startup" > system/etc/init/ssh.override
@@ -62,9 +66,9 @@ echo "exec /usr/sbin/sshd -D -o PasswordAuthentication=yes -o PermitEmptyPasswor
 echo "start on startup" > system/etc/init/usb-tethering.conf
 echo "exec /bin/bash /usr/bin/usb-tethering" >> system/etc/init/usb-tethering.conf
 
-sudo XZ_OPT=-1 tar cJf "../rootfs.tar.xz" system
+XZ_OPT=-1 tar cJf "../rootfs.tar.xz" system
 cd -
-sudo rm -rf "./$OUTPUT/rootfs"
+rm -rf "./$OUTPUT/rootfs"
 
 file="rootfs.tar.xz"
 touch "$OUTPUT/$file.asc"

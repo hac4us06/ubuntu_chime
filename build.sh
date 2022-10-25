@@ -61,7 +61,7 @@ cd "$TMPDOWN"
     fi
     KERNEL_DIR="$(basename "${deviceinfo_kernel_source}")"
     KERNEL_DIR="${KERNEL_DIR%.*}"
-    [ -d "$KERNEL_DIR" ] || git clone "$deviceinfo_kernel_source" -b $deviceinfo_kernel_source_branch --depth 1
+    [ -d "$KERNEL_DIR" ] || git clone "$deviceinfo_kernel_source" -b $deviceinfo_kernel_source_branch --depth 1 --recursive
 
     [ -f halium-boot-ramdisk.img ] || curl --location --output halium-boot-ramdisk.img \
         "https://github.com/Halium/initramfs-tools-halium/releases/download/dynparts/initrd.img-touch-${RAMDISK_ARCH}"

@@ -287,6 +287,10 @@ do
             # rm -f recovery/$2
         ;;
 
+        "#")
+            # We are processing a comment in the script, ignore it
+        ;;
+
         *)
             logit "Unknown command: $1"
         ;;

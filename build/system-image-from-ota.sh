@@ -70,7 +70,7 @@ install_keyring() {
     fi
 
     # Unpacking
-    TMPDIR=$(mktemp -dt -p /tmp/system-image/ tmp.XXXXXXXXXX)
+    TMPDIR=$(mktemp -d -p /tmp/system-image/ tmp.XXXXXXXXXX)
     cd $TMPDIR
     xzcat $1 | tar --numeric-owner -xf -
     if [ ! -e keyring.json ] || [ ! -e keyring.gpg ]; then

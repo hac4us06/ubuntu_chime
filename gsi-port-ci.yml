@@ -87,3 +87,4 @@ devel-flashable-focal:
     - if: $BUILD_DEVEL_FLASHABLE_FOCAL == "1"
       when: on_success
     - when: manual
+      allow_failure: true

@@ -47,10 +47,27 @@ setup_clang() {
 
     print_header "Setting up clang repositories"
 
-    clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86" "android11-gsi"
+    local CLANG_BRANCH
+    local CLANG_REVISION
+    case "$deviceinfo_halium_version" in
+        10)
+            CLANG_BRANCH="android10-gsi"
+            CLANG_REVISION="r353983c"
+            ;;
+        11)
+            CLANG_BRANCH="android11-gsi"
+            CLANG_REVISION="r383902"
+            ;;
+        *)
+            print_error "Clang is not supported with halium version '$deviceinfo_halium_version'"
+            exit 1
+            ;;
+    esac
+
+    clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86" "$CLANG_BRANCH"
     # shellcheck disable=SC2034
-    CLANG_PATH="$TMPDOWN/linux-x86/clang-r383902"
-    rm -rf "$TMPDOWN/linux-x86/.git" "$TMPDOWN/linux-x86/"!(clang-r383902)
+    CLANG_PATH="$TMPDOWN/linux-x86/clang-$CLANG_REVISION"
+    rm -rf "$TMPDOWN/linux-x86/.git" "$TMPDOWN/linux-x86/"!(clang-$CLANG_REVISION)
 
     if [ -n "$deviceinfo_kernel_use_lld" ] && $deviceinfo_kernel_use_lld; then
         export LD=ld.ldd

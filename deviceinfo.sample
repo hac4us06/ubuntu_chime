@@ -26,6 +26,12 @@ deviceinfo_codename="yumi"
 #  - x86_64
 deviceinfo_arch="aarch64"
 
+# The halium version the device is based on:
+#  -  9
+#  - 10
+#  - 11
+deviceinfo_halium_version="10"
+
 #
 ##########
 

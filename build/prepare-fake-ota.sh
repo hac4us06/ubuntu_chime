@@ -15,8 +15,25 @@ source "$SCRIPT/common_functions.sh"
 
 # Fetches android9 rootfs and generic system image to prepare flashable image from CI-built device tarball
 URL='https://system-image.ubports.com'
-ROOTFS_URL=${ROOTFS_URL:-'https://ci.ubports.com/job/xenial-hybris-android9-rootfs-arm64/lastSuccessfulBuild/artifact/ubuntu-touch-android9-arm64.tar.gz'}
-OTA_CHANNEL=${OTA_CHANNEL:-'16.04/arm64/android9/devel'}
+case "$deviceinfo_ubuntu_touch_release" in
+    "xenial")
+        DEFAULT_ROOTFS_URL="https://ci.ubports.com/job/xenial-hybris-android9-rootfs-arm64/lastSuccessfulBuild/artifact/ubuntu-touch-android9-arm64.tar.gz"
+        DEFAULT_OTA_CHANNEL="16.04/arm64/android9/devel"
+        ;;
+    "focal")
+        DEFAULT_ROOTFS_URL="https://ci.ubports.com/job/focal-hybris-rootfs-arm64/job/master/lastSuccessfulBuild/artifact/ubuntu-touch-android9plus-rootfs-arm64.tar.gz"
+        DEFAULT_OTA_CHANNEL="20.04/arm64/android9plus/devel"
+        ;;
+    *)
+        # Both overrides need to be specified, if no ubuntu touch release is set
+        if [ -z "${ROOTFS_URL+x}" ] || [ -z "${OTA_CHANNEL+x}" ]; then
+            print_error "Unsupported ubuntu touch release: '$deviceinfo_ubuntu_touch_release'"
+            exit 1
+        fi
+        ;;
+esac
+ROOTFS_URL=${ROOTFS_URL:-$DEFAULT_ROOTFS_URL}
+OTA_CHANNEL=${OTA_CHANNEL:-$DEFAULT_OTA_CHANNEL}
 
 case "$deviceinfo_halium_version" in
     9)

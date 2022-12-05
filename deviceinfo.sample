@@ -33,6 +33,11 @@ deviceinfo_arch="aarch64"
 #  - 12
 deviceinfo_halium_version="10"
 
+# The Ubuntu Touch release, which should be used (eg as rootfs):
+#  - xenial - 16.04
+#  - focal  - 20.04
+deviceinfo_ubuntu_touch_release="focal"
+
 #
 ##########
 

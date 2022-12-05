@@ -138,6 +138,14 @@ deviceinfo_dtbo="false"
 # This does not affect recovery partition image build
 deviceinfo_skip_dtbo_partition="true"
 
+## Ramdisk
+
+# Use prebuilt ramdisk for the boot image
+deviceinfo_prebuilt_boot_ramdisk="halium-boot-ramdisk.img"
+
+# Download prebuilt ramdisk for the boot image
+deviceinfo_prebuilt_boot_ramdisk_source="https://github.com/halium/initramfs-tools-halium/releases/download/continuous/initrd.img-touch-ARCH"
+
 ## Recovery
 
 # Whether a recovery.img should be generated or not

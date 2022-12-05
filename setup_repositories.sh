@@ -131,7 +131,13 @@ setup_ramdisk() {
     print_header "Setting up ramdisk"
 
     # shellcheck disable=SC2154
-    if [[ "$deviceinfo_kernel_cmdline" = *"systempart=/dev/mapper"* ]]; then
+    if [ -n "$deviceinfo_prebuilt_boot_ramdisk" ] && [ -f "$deviceinfo_prebuilt_boot_ramdisk" ]; then
+        print_message "Using prebuilt ramdisk: $deviceinfo_prebuilt_boot_ramdisk"
+        cp "$deviceinfo_prebuilt_ramdisk" halium-boot-ramdisk.img
+    elif [ -n "$deviceinfo_prebuilt_boot_ramdisk_source" ]; then
+        print_message "Downloading prebuilt ramdisk from: $deviceinfo_prebuilt_boot_ramdisk_source"
+        RAMDISK_URL="$deviceinfo_prebuilt_boot_ramdisk_source"
+    elif [[ "$deviceinfo_kernel_cmdline" = *"systempart=/dev/mapper"* ]]; then
         print_message "Selecting dynparts ramdisk for devices with dynamic partitions"
         RAMDISK_URL="https://github.com/halium/initramfs-tools-halium/releases/download/dynparts/initrd.img-touch-${RAMDISK_ARCH}"
     else

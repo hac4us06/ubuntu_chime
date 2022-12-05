@@ -100,7 +100,7 @@ fi
 mkdir -p "$OUTPUT/rootfs/system"
 cd "$OUTPUT/rootfs"
 print_header "Extracting rootfs..."
-tar xpzf "../$file" --numeric-owner -C system
+XZ_OPT="-T0" tar xpzf "../$file" --numeric-owner -C system
 
 # Enable SSH and USB tethering for debugging in devel-flashable builds
 echo "start on startup" > system/etc/init/ssh.override
@@ -110,7 +110,7 @@ echo "start on startup" > system/etc/init/usb-tethering.conf
 echo "exec /bin/bash /usr/bin/usb-tethering" >> system/etc/init/usb-tethering.conf
 
 print_header "Repacking rootfs..."
-XZ_OPT=-1 tar cJf "../rootfs.tar.xz" system
+XZ_OPT="-1 -T0" tar cJf "../rootfs.tar.xz" system
 cd -
 rm -rf "./$OUTPUT/rootfs"
 
@@ -150,7 +150,7 @@ EOF
 mkdir -p system/etc/system-image/config.d
 ln -s ../client.ini system/etc/system-image/config.d/00_default.ini
 ln -s ../channel.ini system/etc/system-image/config.d/01_channel.ini
-tar cvJf "../version.tar.xz" \
+XZ_OPT="-T0" tar cvJf "../version.tar.xz" \
     --owner=root --group=root \
     system
 cd -

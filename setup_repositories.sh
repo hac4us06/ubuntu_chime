@@ -18,14 +18,14 @@ clone_if_not_existing() {
     fi
 
     if [ -d "$repo_name" ]; then
-        echo "$repo_name - already exists, skipping download"
+        print_info "$repo_name - already exists, skipping download"
     else
         git clone "$repo_url" -b "$repo_branch" --depth 1 --recursive
     fi
 }
 
 setup_gcc() {
-    echo "Setting up GCC repositories"
+    print_header "Setting up GCC repositories"
 
     clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9" "pie-gsi"
     # shellcheck disable=SC2034
@@ -41,11 +41,11 @@ setup_gcc() {
 setup_clang() {
     # shellcheck disable=SC2154
     if ! $deviceinfo_kernel_clang_compile; then
-        echo "Compiling with clang is disabled, skipping repo setup"
+        print_info "Compiling with clang is disabled, skipping repo setup"
         return
     fi
 
-    echo "Setting up clang repositories"
+    print_header "Setting up clang repositories"
 
     clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86" "android11-gsi"
     # shellcheck disable=SC2034
@@ -58,7 +58,7 @@ setup_clang() {
 }
 
 setup_tooling() {
-    echo "Setting up additional tooling repositories"
+    print_header "Setting up additional tooling repositories"
 
     if ([ -n "$deviceinfo_kernel_apply_overlay" ] && $deviceinfo_kernel_apply_overlay) || [ -n "$deviceinfo_dtbo" ]; then
         clone_if_not_existing "https://android.googlesource.com/platform/external/dtc" "pie-gsi"
@@ -69,7 +69,7 @@ setup_tooling() {
 
     if [ -n "$deviceinfo_kernel_use_dtc_ext" ] && $deviceinfo_kernel_use_dtc_ext; then
         if [ -f "dtc_ext" ]; then
-            echo "dtc_ext - already exists, skipping download"
+            print_info "dtc_ext - already exists, skipping download"
         else
             curl --location https://android.googlesource.com/platform/prebuilts/misc/+/refs/heads/android10-gsi/linux-x86/dtc/dtc?format=TEXT | base64 --decode > dtc_ext
         fi
@@ -79,7 +79,7 @@ setup_tooling() {
 
     if [ -n "$deviceinfo_bootimg_append_vbmeta" ] && $deviceinfo_bootimg_append_vbmeta; then
         if [ -f "vbmeta.img" ]; then
-            echo "vbmeta.img - already exists, skipping download"
+            print_info "vbmeta.img - already exists, skipping download"
         else
             wget https://dl.google.com/developers/android/qt/images/gsi/vbmeta.img
         fi
@@ -87,7 +87,7 @@ setup_tooling() {
 }
 
 setup_kernel() {
-    echo "Setting up kernel repositories"
+    print_header "Setting up kernel repositories"
 
     # shellcheck disable=SC2154
     KERNEL_DIR="$(basename "${deviceinfo_kernel_source}")"
@@ -98,18 +98,18 @@ setup_kernel() {
 
 setup_ramdisk() {
     if [ -f halium-boot-ramdisk.img ]; then
-        echo "halium-boot-ramdisk.img - already exists, skipping download"
+        print_info "halium-boot-ramdisk.img - already exists, skipping download"
         return
     fi
 
-    echo "Setting up ramdisk"
+    print_header "Setting up ramdisk"
 
     # shellcheck disable=SC2154
     if [[ "$deviceinfo_kernel_cmdline" = *"systempart=/dev/mapper"* ]]; then
-        echo "Selecting dynparts ramdisk for devices with dynamic partitions"
+        print_message "Selecting dynparts ramdisk for devices with dynamic partitions"
         RAMDISK_URL="https://github.com/halium/initramfs-tools-halium/releases/download/dynparts/initrd.img-touch-${RAMDISK_ARCH}"
     else
-        echo "Selecting default ramdisk"
+        print_message "Selecting default ramdisk"
         RAMDISK_URL="https://github.com/halium/initramfs-tools-halium/releases/download/continuous/initrd.img-touch-${RAMDISK_ARCH}"
     fi
     curl --location --output halium-boot-ramdisk.img "$RAMDISK_URL"

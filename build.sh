@@ -40,7 +40,7 @@ fi
 mkdir -p "${TMP}/system" "${TMP}/partitions"
 
 source "${HERE}/deviceinfo"
-
+source "$SCRIPT/common_functions.sh"
 source "$SCRIPT/setup_repositories.sh" "${TMPDOWN}"
 
 if [ -n "$deviceinfo_kernel_apply_overlay" ] && $deviceinfo_kernel_apply_overlay; then

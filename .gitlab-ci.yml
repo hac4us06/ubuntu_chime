@@ -8,4 +8,5 @@ check-scripts:
     #- git ls-files --exclude='*.sh' --ignored -c -z | xargs -0r shellcheck
     # Enable the above once all scripts pass shellcheck.
     # Until then, shellcheck each script individually.
+    - shellcheck common_functions.sh
     - shellcheck setup_repositories.sh

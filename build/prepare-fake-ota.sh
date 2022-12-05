@@ -5,14 +5,20 @@ if [[ $(id -u) -ne 0 ]] ; then
 fi
 
 HERE=$(pwd)
+SCRIPT="$(dirname "$(realpath "$0")")"/build
+if [ ! -d "$SCRIPT" ]; then
+    SCRIPT="$(dirname "$SCRIPT")"
+fi
+
 source "${HERE}/deviceinfo"
+source "$SCRIPT/common_functions.sh"
 
 # Fetches android9 rootfs and generic system image to prepare flashable image from CI-built device tarball
 URL='https://system-image.ubports.com'
 ROOTFS_URL=${ROOTFS_URL:-'https://ci.ubports.com/job/xenial-hybris-android9-rootfs-arm64/lastSuccessfulBuild/artifact/ubuntu-touch-android9-arm64.tar.gz'}
 OTA_CHANNEL=${OTA_CHANNEL:-'16.04/arm64/android9/devel'}
 
-case "$deviceinfo_bootimg_os_version" in
+case "$deviceinfo_halium_version" in
     9)
         DEVICE_GENERIC_URL='https://ci.ubports.com/job/UBportsCommunityPortsJenkinsCI/job/ubports%252Fporting%252Fcommunity-ports%252Fjenkins-ci%252Fgeneric_arm64/job/main/lastSuccessfulBuild/artifact/halium_halium_arm64.tar.xz'
         ;;
@@ -23,7 +29,7 @@ case "$deviceinfo_bootimg_os_version" in
         DEVICE_GENERIC_URL='https://ci.ubports.com/job/UBportsCommunityPortsJenkinsCI/job/ubports%252Fporting%252Fcommunity-ports%252Fjenkins-ci%252Fgeneric_arm64/job/halium-11.0/lastSuccessfulBuild/artifact/halium_halium_arm64.tar.xz'
         ;;
     *)
-        echo "Unsupported Android version $deviceinfo_bootimg_os_version!"
+        print_error "Unsupported halium version: '$deviceinfo_halium_version'"
         exit 1
         ;;
 esac

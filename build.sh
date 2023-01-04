@@ -106,10 +106,14 @@ else
     "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system"
 fi
 
-if [ -n "$deviceinfo_prebuilt_dtbo" ]; then
-    cp "$deviceinfo_prebuilt_dtbo" "${TMP}/partitions/dtbo.img"
-elif [ -n "$deviceinfo_dtbo" ]; then
-    "$SCRIPT/make-dtboimage.sh" "${TMPDOWN}" "${TMPDOWN}/KERNEL_OBJ" "${TMP}/partitions/dtbo.img"
+# If deviceinfo_skip_dtbo_partition is set to true, do not copy an image for dedicated dtbo partition.
+# It does not affect recovery partition image build performed in make-bootimage.sh
+if [ -z "$deviceinfo_skip_dtbo_partition" ] || ! $deviceinfo_skip_dtbo_partition; then
+    if [ -n "$deviceinfo_prebuilt_dtbo" ]; then
+        cp "$deviceinfo_prebuilt_dtbo" "${TMP}/partitions/dtbo.img"
+    elif [ -n "$deviceinfo_dtbo" ]; then
+        "$SCRIPT/make-dtboimage.sh" "${TMPDOWN}" "${TMPDOWN}/KERNEL_OBJ" "${TMP}/partitions/dtbo.img"
+    fi
 fi
 
 "$SCRIPT/make-bootimage.sh" "${TMPDOWN}" "${TMPDOWN}/KERNEL_OBJ" "${TMPDOWN}/halium-boot-ramdisk.img" "${TMP}/partitions/boot.img"

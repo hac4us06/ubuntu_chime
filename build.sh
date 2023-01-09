@@ -125,6 +125,8 @@ ${TMP}/system/opt/halium-overlay/system/etc/init
 ${TMP}/system/usr/share/halium-overlay/system/etc/init
 ${TMP}/system/opt/halium-overlay/vendor/etc/init
 ${TMP}/system/usr/share/halium-overlay/vendor/etc/init
+${TMP}/system/android/system/etc/init
+${TMP}/system/android/vendor/etc/init
 "
 while IFS= read -r path ; do
     if [ -d "$path" ]; then
@@ -137,6 +139,8 @@ ${TMP}/system/opt/halium-overlay/system
 ${TMP}/system/usr/share/halium-overlay/system
 ${TMP}/system/opt/halium-overlay/vendor
 ${TMP}/system/usr/share/halium-overlay/vendor
+${TMP}/system/android/system
+${TMP}/system/android/vendor
 "
 while IFS= read -r path ; do
     if [ -d "$path" ]; then

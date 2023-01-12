@@ -22,8 +22,11 @@ esac
 if [ -d "$HERE/ramdisk-recovery-overlay" ] && [ -e "$RECOVERY_RAMDISK" ]; then
     rm -rf "$TMPDOWN/ramdisk-recovery"
     mkdir -p "$TMPDOWN/ramdisk-recovery"
-
     cd "$TMPDOWN/ramdisk-recovery"
+
+    HAS_DYNAMIC_PARTITIONS=false
+    [[ "$deviceinfo_kernel_cmdline" == *"systempart=/dev/mapper"* ]] && HAS_DYNAMIC_PARTITIONS=true
+
     fakeroot -- bash <<EOF
 gzip -dc "$RECOVERY_RAMDISK" | cpio -i
 cp -r "$HERE/ramdisk-recovery-overlay"/* "$TMPDOWN/ramdisk-recovery"
@@ -36,6 +39,7 @@ echo "ro.product.device=$deviceinfo_codename" >> prop.default
 echo "ro.product.manufacturer=$deviceinfo_manufacturer" >> prop.default
 echo "ro.product.model=$deviceinfo_name" >> prop.default
 echo "ro.product.name=halium_$deviceinfo_codename" >> prop.default
+[ "$HAS_DYNAMIC_PARTITIONS" = true ] && echo "ro.boot.dynamic_partitions=true" >> prop.default
 
 find . | cpio -o -H newc | gzip > "$TMPDOWN/ramdisk-recovery.img-merged"
 EOF

@@ -92,6 +92,9 @@ fi
 
 if [ -n "$deviceinfo_bootimg_prebuilt_dt" ]; then
     DT="$HERE/$deviceinfo_bootimg_prebuilt_dt"
+elif [ -n "$deviceinfo_bootimg_dt" ]; then
+    PREFIX=$KERNEL_OBJ/arch/$ARCH/boot
+    DT="$PREFIX/$deviceinfo_bootimg_dt"
 fi
 
 if [ -n "$deviceinfo_prebuilt_dtbo" ]; then

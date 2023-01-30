@@ -144,7 +144,7 @@ ${TMP}/system/android/vendor
 "
 while IFS= read -r path ; do
     if [ -d "$path" ]; then
-        find "$path" -type f -name "build.prop" -exec chmod 600 {} \;
+        find "$path" -type f \( -name "prop.halium" -o -name "build.prop" \) -exec chmod 600 {} \;
     fi
 done <<< "$BUILDPROP_PATHS"
 

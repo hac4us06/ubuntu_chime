@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Based on https://raw.githubusercontent.com/ubports/Jumpdrive/ubports-recovery/initramfs/system-image-upgrader
 # Modified and simplified to create flashable system.img from OTA files
 set -e
@@ -6,6 +6,8 @@ set -e
 HERE=$(pwd)
 SRC="$(realpath $(dirname "$1" 2>/dev/null || echo 'src'))"
 OUT="$(realpath "$2" 2>/dev/null || echo 'out')"
+
+source "${HERE}/deviceinfo"
 
 logit() {
     echo "System image: $1"
@@ -180,7 +182,7 @@ do
                 system)
                     FULL_IMAGE=1
                     rm -f "$OUT/rootfs.img"
-                    dd if=/dev/zero of="$OUT/rootfs.img" seek=750K bs=4096 count=0
+                    truncate -s "${deviceinfo_system_partition_size:-3000M}" $OUT/rootfs.img
                     mkfs.ext4 -F "$OUT/rootfs.img"
                 ;;
 

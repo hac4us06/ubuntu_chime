@@ -111,6 +111,10 @@ deviceinfo_kernel_apply_overlay="false"
 # Prebuilt DTB to append to the generated images
 deviceinfo_bootimg_prebuilt_dtb="ubports_yumi.dtb"
 
+# Same as above, but selected from kernel build directory
+# Mainly needed for bootimg v0 Samsung devices
+deviceinfo_bootimg_dt="ubports_yumi.dtb"
+
 # Use prebuilt dtbo image instead of generating from kernel sources
 # Note: overrides `deviceinfo_dtbo`
 deviceinfo_prebuilt_dtbo="dtbo.img"
@@ -139,6 +143,10 @@ deviceinfo_recovery_partition_size="100663296"
 # Image sector size of the rootfs
 # This depends on the hardware used; the default of 4096 should be fine for most modern devices
 deviceinfo_rootfs_image_sector_size="4096"
+
+# Size of the device's (dynamic) system partition
+# This will be the maximum size for rootfs.img
+deviceinfo_system_partition_size="3000M"
 
 # Whether to enable overlaystore or not
 # For more information, see: https://docs.ubports.com/en/latest/porting/configure_test_fix/Overlay.html#ubuntu-touch-20-04-and-later

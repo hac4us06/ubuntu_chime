@@ -30,6 +30,7 @@ deviceinfo_arch="aarch64"
 #  -  9
 #  - 10
 #  - 11
+#  - 12
 deviceinfo_halium_version="10"
 
 #

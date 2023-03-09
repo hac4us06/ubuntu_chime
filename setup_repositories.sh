@@ -49,7 +49,12 @@ setup_clang() {
 
     local CLANG_BRANCH
     local CLANG_REVISION
+    # shellcheck disable=SC2154
     case "$deviceinfo_halium_version" in
+        9)
+            CLANG_BRANCH="pie-gsi"
+            CLANG_REVISION="4691093"
+            ;;
         10)
             CLANG_BRANCH="android10-gsi"
             CLANG_REVISION="r353983c"
@@ -57,6 +62,10 @@ setup_clang() {
         11)
             CLANG_BRANCH="android11-gsi"
             CLANG_REVISION="r383902"
+            ;;
+        12)
+            CLANG_BRANCH="android12L-gsi"
+            CLANG_REVISION="r416183b"
             ;;
         *)
             print_error "Clang is not supported with halium version '$deviceinfo_halium_version'"

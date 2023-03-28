@@ -57,6 +57,13 @@ deviceinfo_kernel_defconfig="halium_yumi_defconfig"
 # Android based ports can usually take them from the Android device tree's `BoardConfig.mk`
 deviceinfo_kernel_cmdline="console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0xA84000 androidboot.console=ttyMSM0 printk.devkmsg=on androidboot.hardware=qcom video=vfb:640x400,bpp=32,memsize=3072000 androidboot.configfs=true loop.max_part=7 msm_rtb.filter=0x237 ehci-hcd.park=3 service_locator.enable=1 androidboot.memcg=1 cgroup.memory=nokmem androidboot.usbcontroller=a600000.dwc3 swiotlb=2048 androidboot.boot_devices=soc/1d84000.ufshc systempart=/dev/mapper/system"
 
+# URL of a custom GCC toolchain archive
+# This should only be needed in rare cases when Google's GCC 4.9 doesn't work
+deviceinfo_kernel_gcc_toolchain_source="https://releases.linaro.org/components/toolchain/binaries/6.3-2017.02/aarch64-linux-gnu/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu.tar.xz"
+
+# Local directory name of the extracted custom GCC toolchain
+deviceinfo_kernel_gcc_toolchain_dir="gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu"
+
 # Whether the kernel is compiled using Clang or not
 deviceinfo_kernel_clang_compile="true"
 

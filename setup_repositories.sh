@@ -24,12 +24,31 @@ clone_if_not_existing() {
     fi
 }
 
+fetch_tarball_if_not_existing() {
+    local dl_url="$1"
+    local dl_name="${dl_url##*/}"
+    dl_name="${dl_name%.tar.*}"
+
+    if [ -d "$dl_name" ]; then
+        print_info "$dl_name - already exists, skipping download"
+    else
+        curl --location --remote-name "$dl_url"
+        tar xJf "${dl_url##*/}"
+    fi
+}
+
 setup_gcc() {
     print_header "Setting up GCC repositories"
 
-    clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9" "pie-gsi"
-    # shellcheck disable=SC2034
-    GCC_PATH="$TMPDOWN/aarch64-linux-android-4.9"
+    if [ -n "$deviceinfo_kernel_gcc_toolchain_source" ] && [ -n "$deviceinfo_kernel_gcc_toolchain_dir" ]; then
+        fetch_tarball_if_not_existing "$deviceinfo_kernel_gcc_toolchain_source"
+        # shellcheck disable=SC2154
+        GCC_PATH="$TMPDOWN/$deviceinfo_kernel_gcc_toolchain_dir"
+    elif [ "$deviceinfo_arch" = "aarch64" ]; then
+        clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9" "pie-gsi"
+        # shellcheck disable=SC2034
+        GCC_PATH="$TMPDOWN/aarch64-linux-android-4.9"
+    fi
 
     if [ "$deviceinfo_arch" = "aarch64" ]; then
         clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9" "pie-gsi"

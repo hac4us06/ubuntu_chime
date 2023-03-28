@@ -20,10 +20,11 @@ case "$deviceinfo_arch" in
     x86) ARCH="x86" ;;
 esac
 
-export ARCH
-export CROSS_COMPILE="${deviceinfo_arch}-linux-android-"
+: "${CROSS_COMPILE:=${deviceinfo_arch}-linux-android-}"
+export ARCH CROSS_COMPILE
 if [ "$ARCH" == "arm64" ]; then
-    export CROSS_COMPILE_ARM32=arm-linux-androideabi-
+    : "${CROSS_COMPILE_ARM32:=arm-linux-androideabi-}"
+    export CROSS_COMPILE_ARM32
 fi
 MAKEOPTS=""
 if [ -n "$CC" ]; then

@@ -34,16 +34,22 @@ case "$deviceinfo_ubuntu_touch_release" in
 esac
 ROOTFS_URL=${ROOTFS_URL:-$DEFAULT_ROOTFS_URL}
 OTA_CHANNEL=${OTA_CHANNEL:-$DEFAULT_OTA_CHANNEL}
+DEVICE_GENERIC_URL_BASE='https://ci.ubports.com/job/UBportsCommunityPortsJenkinsCI/job/ubports%252Fporting%252Fcommunity-ports%252Fjenkins-ci%252Fgeneric_arm64/job'
 
+# shellcheck disable=SC2154
 case "$deviceinfo_halium_version" in
     9)
-        DEVICE_GENERIC_URL='https://ci.ubports.com/job/UBportsCommunityPortsJenkinsCI/job/ubports%252Fporting%252Fcommunity-ports%252Fjenkins-ci%252Fgeneric_arm64/job/main/lastSuccessfulBuild/artifact/halium_halium_arm64.tar.xz'
+        DEVICE_GENERIC_URL="$DEVICE_GENERIC_URL_BASE/main/lastSuccessfulBuild/artifact/halium_halium_arm64.tar.xz"
         ;;
     10)
-        DEVICE_GENERIC_URL='https://ci.ubports.com/job/UBportsCommunityPortsJenkinsCI/job/ubports%252Fporting%252Fcommunity-ports%252Fjenkins-ci%252Fgeneric_arm64/job/halium-10.0/lastSuccessfulBuild/artifact/halium_halium_arm64.tar.xz'
+        # shellcheck disable=SC2154
+        case "$deviceinfo_arch" in
+            arm) DEVICE_GENERIC_URL="$DEVICE_GENERIC_URL_BASE/halium-10.0-arm32/lastSuccessfulBuild/artifact/halium_halium_arm.tar.xz";;
+            aarch64) DEVICE_GENERIC_URL="$DEVICE_GENERIC_URL_BASE/halium-10.0/lastSuccessfulBuild/artifact/halium_halium_arm64.tar.xz";;
+        esac
         ;;
     11)
-        DEVICE_GENERIC_URL='https://ci.ubports.com/job/UBportsCommunityPortsJenkinsCI/job/ubports%252Fporting%252Fcommunity-ports%252Fjenkins-ci%252Fgeneric_arm64/job/halium-11.0/lastSuccessfulBuild/artifact/halium_halium_arm64.tar.xz'
+        DEVICE_GENERIC_URL="$DEVICE_GENERIC_URL_BASE/halium-11.0/lastSuccessfulBuild/artifact/halium_halium_arm64.tar.xz"
         ;;
     *)
         print_error "Unsupported halium version: '$deviceinfo_halium_version'"

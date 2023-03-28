@@ -4,12 +4,18 @@ shopt -s extglob
 
 BUILD_DIR=
 OUT=
+ONLY_CLONE=
+ONLY_KERNEL=
+MENUCONFIG=
 
 while [ $# -gt 0 ]
 do
     case "$1" in
     (-b) BUILD_DIR="$(realpath "$2")"; shift;;
     (-o) OUT="$2"; shift;;
+    (-c) ONLY_CLONE="true";;
+    (-k) ONLY_KERNEL="true";;
+    (-m) MENUCONFIG="true";;
     (-*) echo "$0: Error: unknown option $1" 1>&2; exit 1;;
     (*) OUT="$2"; break;;
     esac
@@ -42,6 +48,9 @@ mkdir -p "${TMP}/system" "${TMP}/partitions"
 source "${HERE}/deviceinfo"
 source "$SCRIPT/common_functions.sh"
 source "$SCRIPT/setup_repositories.sh" "${TMPDOWN}"
+if [ "$ONLY_CLONE" = "true" ]; then
+    exit 0
+fi
 
 if [ -n "$deviceinfo_kernel_apply_overlay" ] && $deviceinfo_kernel_apply_overlay; then
     "$SCRIPT/build-ufdt-apply-overlay.sh" "${TMPDOWN}"
@@ -51,10 +60,10 @@ if $deviceinfo_kernel_clang_compile; then
     CC=clang \
     CLANG_TRIPLE=${deviceinfo_arch}-linux-gnu- \
     PATH="$CLANG_PATH/bin:$GCC_PATH/bin:$GCC_ARM32_PATH/bin:${PATH}" \
-        "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system"
+        "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system" "${MENUCONFIG}"
 else
     PATH="$GCC_PATH/bin:$GCC_ARM32_PATH/bin:${PATH}" \
-        "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system"
+        "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system" "${MENUCONFIG}"
 fi
 
 # If deviceinfo_skip_dtbo_partition is set to true, do not copy an image for dedicated dtbo partition.
@@ -68,6 +77,9 @@ if [ -z "$deviceinfo_skip_dtbo_partition" ] || ! $deviceinfo_skip_dtbo_partition
 fi
 
 "$SCRIPT/make-bootimage.sh" "${TMPDOWN}" "${TMPDOWN}/KERNEL_OBJ" "${TMPDOWN}/halium-boot-ramdisk.img" "${TMP}/partitions/boot.img"
+if [ "$ONLY_KERNEL" = "true" ]; then
+    exit 0
+fi
 
 cp -av overlay/* "${TMP}/"
 

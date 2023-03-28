@@ -3,6 +3,7 @@ set -ex
 
 TMPDOWN=$1
 INSTALL_MOD_PATH=$2
+MENUCONFIG=$3
 HERE=$(pwd)
 source "${HERE}/deviceinfo"
 
@@ -34,6 +35,9 @@ fi
 
 cd "$KERNEL_DIR"
 make O="$OUT" $MAKEOPTS $deviceinfo_kernel_defconfig
+if ${MENUCONFIG:-false}; then
+    make O="$OUT" $MAKEOPTS menuconfig
+fi
 make O="$OUT" $MAKEOPTS -j$(nproc --all)
 if [ "$deviceinfo_kernel_disable_modules" != "true" ]
 then

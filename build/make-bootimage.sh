@@ -5,6 +5,7 @@ TMPDOWN=$(realpath $1)
 KERNEL_OBJ=$(realpath $2)
 RAMDISK=$(realpath $3)
 OUT=$(realpath $4)
+INSTALL_MOD_PATH="$(realpath $5)"
 
 HERE=$(pwd)
 source "${HERE}/deviceinfo"
@@ -55,7 +56,51 @@ if [ -d "$HERE/ramdisk-overlay" ]; then
     cp "$RAMDISK" "${RAMDISK}-merged"
     RAMDISK="${RAMDISK}-merged"
     cd "$HERE/ramdisk-overlay"
-    find . | cpio -o -H newc | gzip >> "$RAMDISK"
+
+    if [[ -f "$HERE/ramdisk-overlay"/lib/modules/modules.load && "$deviceinfo_kernel_disable_modules" != "true" ]]; then
+        item_in_array() { local item match="$1"; shift; for item; do [ "$item" = "$match" ] && return 0; done; return 1; }
+        modules_dep="$(find "$INSTALL_MOD_PATH"/ -type f -name modules.dep)"
+        modules="$(dirname "$modules_dep")" # e.g. ".../lib/modules/5.10.110-gb4d6c7a2f3a6"
+        modules_len=${#modules} # e.g. 105
+        all_modules="$(find "$modules" -type f -name "*.ko*")"
+        module_files=("$modules/modules.alias" "$modules/modules.dep" "$modules/modules.softdep")
+        set +x
+        while read -r mod; do
+            mod_path="$(echo -e "$all_modules" | grep "/$mod")" # ".../kernel/.../mod.ko"
+            mod_path="${mod_path:$((modules_len+1))}" # drop absolute path prefix
+            dep_paths="$(sed -n "s|^$mod_path: ||p" "$modules_dep")"
+            for mod_file in $mod_path $dep_paths; do # e.g. "kernel/.../mod.ko"
+                item_in_array "$modules/$mod_file" "${module_files[@]}" && continue # skip over already processed modules
+                module_files+=("$modules/$mod_file")
+            done
+        done < <(cat "$HERE/ramdisk-overlay"/lib/modules/modules.load* | sort | uniq)
+        set -x
+        cp "${module_files[@]}" "$HERE/ramdisk-overlay"/lib/modules/
+
+        # rewrite modules.dep for GKI /lib/modules/*.ko structure
+        cp "$HERE/ramdisk-overlay"/lib/modules/modules.dep "$HERE/ramdisk-overlay"/lib/modules/modules.dep.orig
+        while read -r line; do
+            printf '/lib/modules/%s:' "$(basename ${line%:*})"
+            deps="${line#*:}"
+            if [ "$deps" ]; then
+                for m in $(basename -a $deps); do
+                    printf ' /lib/modules/%s' "$m"
+                done
+            fi
+            echo
+        done < "$HERE/ramdisk-overlay"/lib/modules/modules.dep.orig | tee "$HERE/ramdisk-overlay"/lib/modules/modules.dep
+    fi
+
+    if [ "$deviceinfo_bootimg_header_version" -le 2 ]; then
+        find . | cpio -o -H newc | gzip >> "$RAMDISK"
+    else
+        find . | cpio -o -H newc | gzip > "${RAMDISK}-vendor"
+    fi
+
+    # Cleanup ramdisk-overlay dir
+    if [[ -f "$HERE/ramdisk-overlay"/lib/modules/modules.load && "$deviceinfo_kernel_disable_modules" != "true" ]]; then
+        rm -f "$HERE/ramdisk-overlay"/lib/modules/{modules.{alias,*dep*},*.ko}
+    fi
 
     # Restore unoverlayed recovery ramdisk
     if [ -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ] && [ -f "$TMPDOWN/ramdisk-recovery.img-original" ]; then
@@ -67,7 +112,7 @@ if [ -n "$deviceinfo_kernel_image_name" ]; then
     KERNEL="$KERNEL_OBJ/arch/$ARCH/boot/$deviceinfo_kernel_image_name"
 else
     # Autodetect kernel image name for boot.img
-    if [ "$deviceinfo_bootimg_header_version" -eq 2 ]; then
+    if [ "$deviceinfo_bootimg_header_version" -ge 2 ]; then
         IMAGE_LIST="Image.gz Image"
     else
         IMAGE_LIST="Image.gz-dtb Image.gz Image"
@@ -104,9 +149,12 @@ elif [ -n "$deviceinfo_dtbo" ]; then
 fi
 
 EXTRA_ARGS=""
+EXTRA_VENDOR_ARGS=""
 
 if [ "$deviceinfo_bootimg_header_version" -le 2 ]; then
     EXTRA_ARGS+=" --base $deviceinfo_flash_offset_base --kernel_offset $deviceinfo_flash_offset_kernel --ramdisk_offset $deviceinfo_flash_offset_ramdisk --second_offset $deviceinfo_flash_offset_second --tags_offset $deviceinfo_flash_offset_tags --pagesize $deviceinfo_flash_pagesize"
+else
+    EXTRA_VENDOR_ARGS+=" --base $deviceinfo_flash_offset_base --kernel_offset $deviceinfo_flash_offset_kernel --ramdisk_offset $deviceinfo_flash_offset_ramdisk --tags_offset $deviceinfo_flash_offset_tags --pagesize $deviceinfo_flash_pagesize --dtb $DTB --dtb_offset $deviceinfo_flash_offset_dtb"
 fi
 
 if [ "$deviceinfo_bootimg_header_version" -eq 0 ] && [ -n "$DT" ]; then
@@ -121,7 +169,12 @@ if [ -n "$deviceinfo_bootimg_board" ]; then
     EXTRA_ARGS+=" --board $deviceinfo_bootimg_board"
 fi
 
-mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
+if [ "$deviceinfo_bootimg_header_version" -le 2 ]; then
+    mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
+else
+    mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
+    mkbootimg --ramdisk_type platform --ramdisk_name '' --vendor_ramdisk_fragment "${RAMDISK}-vendor" --vendor_cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version --vendor_boot "$(dirname "$OUT")/vendor_$(basename "$OUT")" $EXTRA_VENDOR_ARGS
+fi
 
 if [ -n "$deviceinfo_bootimg_partition_size" ]; then
     if [ "$deviceinfo_bootimg_tailtype" == "SEAndroid" ]
@@ -142,15 +195,15 @@ if [ -n "$deviceinfo_has_recovery_partition" ] && $deviceinfo_has_recovery_parti
     RECOVERY="$(dirname "$OUT")/recovery.img"
     EXTRA_ARGS=""
 
-    if [ "$deviceinfo_bootimg_header_version" -eq 2 ]; then
+    if [ "$deviceinfo_bootimg_header_version" -ge 2 ]; then
         EXTRA_ARGS+=" --header_version $deviceinfo_bootimg_header_version --dtb $DTB --dtb_offset $deviceinfo_flash_offset_dtb"
     fi
 
     if [ "$deviceinfo_bootimg_header_version" -eq 0 ] && [ -n "$DT" ]; then
-        EXTRA_ARGS+=" --header_version $deviceinfo_bootimg_header_version --dt $DT"
+        EXTRA_ARGS+=" --header_version 0 --dt $DT"
     fi
 
-    if [ -n "$DTBO" ]; then
+    if [ "$deviceinfo_bootimg_header_version" -le 2 ] && [ -n "$DTBO" ]; then
         EXTRA_ARGS+=" --recovery_dtbo $DTBO"
     fi
 

@@ -76,7 +76,8 @@ if [ -z "$deviceinfo_skip_dtbo_partition" ] || ! $deviceinfo_skip_dtbo_partition
     fi
 fi
 
-"$SCRIPT/make-bootimage.sh" "${TMPDOWN}" "${TMPDOWN}/KERNEL_OBJ" "${TMPDOWN}/halium-boot-ramdisk.img" "${TMP}/partitions/boot.img"
+"$SCRIPT/make-bootimage.sh" "${TMPDOWN}" "${TMPDOWN}/KERNEL_OBJ" "${TMPDOWN}/halium-boot-ramdisk.img" \
+    "${TMP}/partitions/boot.img" "${TMP}/system"
 if [ "$ONLY_KERNEL" = "true" ]; then
     exit 0
 fi

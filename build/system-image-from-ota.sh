@@ -182,7 +182,9 @@ do
                 system)
                     FULL_IMAGE=1
                     rm -f "$OUT/rootfs.img"
-                    truncate -s "${deviceinfo_system_partition_size:-3000M}" $OUT/rootfs.img
+                    # shellcheck disable=SC2154
+                    [ "$deviceinfo_halium_version" -eq 9 ] && deviceinfo_system_partition_size="2800M"
+                    truncate -s "${deviceinfo_system_partition_size:-3000M}" "$OUT/rootfs.img"
                     mkfs.ext4 -F "$OUT/rootfs.img"
                 ;;
 

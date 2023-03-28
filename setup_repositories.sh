@@ -50,7 +50,7 @@ setup_gcc() {
         GCC_PATH="$TMPDOWN/aarch64-linux-android-4.9"
     fi
 
-    if [ "$deviceinfo_arch" = "aarch64" ]; then
+    if [ "$deviceinfo_arch" = "aarch64" ] || [ "$deviceinfo_arch" = "arm" ]; then
         clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9" "pie-gsi"
         # shellcheck disable=SC2034
         GCC_ARM32_PATH="$TMPDOWN/arm-linux-androideabi-4.9"

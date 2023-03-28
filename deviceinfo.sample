@@ -60,6 +60,10 @@ deviceinfo_kernel_cmdline="console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0xA
 # Whether the kernel is compiled using Clang or not
 deviceinfo_kernel_clang_compile="true"
 
+# Whether LLVM should be used as primary toolchain or not
+# Note: requires `deviceinfo_kernel_clang_compile` to be enabled
+deviceinfo_kernel_llvm_compile="false"
+
 # Whether lld should be used as linker or not
 # Note: requires `deviceinfo_kernel_clang_compile` to be enabled
 deviceinfo_kernel_use_lld="false"

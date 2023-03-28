@@ -78,6 +78,10 @@ setup_clang() {
     CLANG_PATH="$TMPDOWN/linux-x86/clang-$CLANG_REVISION"
     rm -rf "$TMPDOWN/linux-x86/.git" "$TMPDOWN/linux-x86/"!(clang-$CLANG_REVISION)
 
+    if [ -n "$deviceinfo_kernel_llvm_compile" ] && $deviceinfo_kernel_llvm_compile; then
+        export LLVM=1 LLVM_IAS=1
+    fi
+
     if [ -n "$deviceinfo_kernel_use_lld" ] && $deviceinfo_kernel_use_lld; then
         export LD=ld.ldd
     fi

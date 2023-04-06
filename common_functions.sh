@@ -1,10 +1,12 @@
 #!/bin/bash
 
-RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
-YELLOW=$(tput setaf 3)
-POWDER_BLUE=$(tput setaf 153)
-RESET=$(tput sgr0)
+if [ -n "$TERM" ] && [ "$TERM" != "dumb" ]; then
+    RED=$(tput setaf 1)
+    GREEN=$(tput setaf 2)
+    YELLOW=$(tput setaf 3)
+    POWDER_BLUE=$(tput setaf 153)
+    RESET=$(tput sgr0)
+fi
 
 function print_error() {
     printf "${RED}%s${RESET}\\n" "${*}" 1>&2

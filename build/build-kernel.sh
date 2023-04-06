@@ -20,8 +20,18 @@ case "$deviceinfo_arch" in
     x86) ARCH="x86" ;;
 esac
 
+if [ -n "$deviceinfo_kernel_clang_compile" ] && $deviceinfo_kernel_clang_compile; then
+    # Newer Android kernels no longer support setting CLANG_TRIPLE
+    if grep -q CLANG_TRIPLE "$KERNEL_DIR/Makefile"; then
+        : "${CLANG_TRIPLE:=${deviceinfo_arch}-linux-gnu-}"
+    else
+        : "${CROSS_COMPILE:=${deviceinfo_arch}-linux-gnu-}"
+    fi
+fi
+
 : "${CROSS_COMPILE:=${deviceinfo_arch}-linux-android-}"
-export ARCH CROSS_COMPILE
+export ARCH CLANG_TRIPLE CROSS_COMPILE
+
 if [ "$ARCH" == "arm64" ]; then
     : "${CROSS_COMPILE_ARM32:=arm-linux-androideabi-}"
     export CROSS_COMPILE_ARM32
@@ -32,6 +42,9 @@ if [ -n "$CC" ]; then
 fi
 if [ -n "$LD" ]; then
     MAKEOPTS+=" LD=$LD"
+fi
+if [ -n "$deviceinfo_kernel_llvm_compile" ] && $deviceinfo_kernel_llvm_compile; then
+    MAKEOPTS+=" LLVM=1 LLVM_IAS=1"
 fi
 
 cd "$KERNEL_DIR"

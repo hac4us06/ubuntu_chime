@@ -15,7 +15,7 @@ source "$SCRIPT/common_functions.sh"
 
 # Fetches android9 rootfs and generic system image to prepare flashable image from CI-built device tarball
 URL='https://system-image.ubports.com'
-case "$deviceinfo_ubuntu_touch_release" in
+case "${deviceinfo_ubuntu_touch_release:-focal}" in
     "xenial")
         DEFAULT_ROOTFS_URL="https://ci.ubports.com/job/xenial-hybris-android9-rootfs-arm64/lastSuccessfulBuild/artifact/ubuntu-touch-android9-arm64.tar.gz"
         DEFAULT_OTA_CHANNEL="16.04/arm64/android9/devel"

@@ -157,6 +157,10 @@ deviceinfo_prebuilt_boot_ramdisk="halium-boot-ramdisk.img"
 # Download prebuilt ramdisk for the boot image
 deviceinfo_prebuilt_boot_ramdisk_source="https://github.com/halium/initramfs-tools-halium/releases/download/continuous/initrd.img-touch-ARCH"
 
+# Device ramdisk compression.
+# Currently supported values are "gzip" and "lz4"
+deviceinfo_ramdisk_compression="gzip"
+
 ## Recovery
 
 # Whether a recovery.img should be generated or not

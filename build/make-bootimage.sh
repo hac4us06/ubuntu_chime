@@ -20,6 +20,19 @@ esac
 [ -f "$HERE/ramdisk-recovery.img" ] && RECOVERY_RAMDISK="$HERE/ramdisk-recovery.img"
 [ -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ] && RECOVERY_RAMDISK="$HERE/ramdisk-overlay/ramdisk-recovery.img"
 
+case "${deviceinfo_ramdisk_compression:=gzip}" in
+    gzip)
+        COMPRESSION_CMD="gzip -9"
+        ;;
+    lz4)
+        COMPRESSION_CMD="lz4 -l -9"
+        ;;
+    *)
+        echo "Unsupported deviceinfo_ramdisk_compression value: '$deviceinfo_ramdisk_compression'"
+        exit 1
+        ;;
+esac
+
 if [ -d "$HERE/ramdisk-recovery-overlay" ] && [ -e "$RECOVERY_RAMDISK" ]; then
     rm -rf "$TMPDOWN/ramdisk-recovery"
     mkdir -p "$TMPDOWN/ramdisk-recovery"
@@ -42,7 +55,7 @@ echo "ro.product.model=$deviceinfo_name" >> prop.default
 echo "ro.product.name=halium_$deviceinfo_codename" >> prop.default
 [ "$HAS_DYNAMIC_PARTITIONS" = true ] && echo "ro.boot.dynamic_partitions=true" >> prop.default
 
-find . | cpio -o -H newc | gzip > "$TMPDOWN/ramdisk-recovery.img-merged"
+find . | cpio -o -H newc | $COMPRESSION_CMD > "$TMPDOWN/ramdisk-recovery.img-merged"
 EOF
     if [ ! -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ]; then
         RECOVERY_RAMDISK="$TMPDOWN/ramdisk-recovery.img-merged"
@@ -50,6 +63,11 @@ EOF
         mv "$HERE/ramdisk-overlay/ramdisk-recovery.img" "$TMPDOWN/ramdisk-recovery.img-original"
         cp "$TMPDOWN/ramdisk-recovery.img-merged" "$HERE/ramdisk-overlay/ramdisk-recovery.img"
     fi
+fi
+
+if [ "$deviceinfo_ramdisk_compression" != "gzip" ]; then
+    gzip -dc "$RAMDISK" | $COMPRESSION_CMD > "${RAMDISK}.${deviceinfo_ramdisk_compression}"
+    RAMDISK="${RAMDISK}.${deviceinfo_ramdisk_compression}"
 fi
 
 if [ -d "$HERE/ramdisk-overlay" ]; then
@@ -92,9 +110,9 @@ if [ -d "$HERE/ramdisk-overlay" ]; then
     fi
 
     if [ "$deviceinfo_bootimg_header_version" -le 2 ]; then
-        find . | cpio -o -H newc | gzip >> "$RAMDISK"
+        find . | cpio -o -H newc | $COMPRESSION_CMD >> "$RAMDISK"
     else
-        find . | cpio -o -H newc | gzip > "${RAMDISK}-vendor"
+        find . | cpio -o -H newc | $COMPRESSION_CMD > "${RAMDISK}-vendor"
     fi
 
     # Cleanup ramdisk-overlay dir

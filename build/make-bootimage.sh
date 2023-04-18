@@ -74,8 +74,20 @@ if [ -d "$HERE/ramdisk-overlay" ]; then
     cp "$RAMDISK" "${RAMDISK}-merged"
     RAMDISK="${RAMDISK}-merged"
     cd "$HERE/ramdisk-overlay"
+    find . | cpio -o -H newc | $COMPRESSION_CMD >> "$RAMDISK"
 
-    if [[ -f "$HERE/ramdisk-overlay"/lib/modules/modules.load && "$deviceinfo_kernel_disable_modules" != "true" ]]; then
+    # Restore unoverlayed recovery ramdisk
+    if [ -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ] && [ -f "$TMPDOWN/ramdisk-recovery.img-original" ]; then
+        mv "$TMPDOWN/ramdisk-recovery.img-original" "$HERE/ramdisk-overlay/ramdisk-recovery.img"
+    fi
+fi
+
+# Create ramdisk for vendor_boot.img
+if [ -d "$HERE/vendor-ramdisk-overlay" ]; then
+    VENDOR_RAMDISK="$TMPDOWN/ramdisk-vendor_boot.img"
+    cd "$HERE/vendor-ramdisk-overlay"
+
+    if [[ -f lib/modules/modules.load && "$deviceinfo_kernel_disable_modules" != "true" ]]; then
         item_in_array() { local item match="$1"; shift; for item; do [ "$item" = "$match" ] && return 0; done; return 1; }
         modules_dep="$(find "$INSTALL_MOD_PATH"/ -type f -name modules.dep)"
         modules="$(dirname "$modules_dep")" # e.g. ".../lib/modules/5.10.110-gb4d6c7a2f3a6"
@@ -91,12 +103,12 @@ if [ -d "$HERE/ramdisk-overlay" ]; then
                 item_in_array "$modules/$mod_file" "${module_files[@]}" && continue # skip over already processed modules
                 module_files+=("$modules/$mod_file")
             done
-        done < <(cat "$HERE/ramdisk-overlay"/lib/modules/modules.load* | sort | uniq)
+        done < <(cat lib/modules/modules.load* | sort | uniq)
         set -x
-        cp "${module_files[@]}" "$HERE/ramdisk-overlay"/lib/modules/
+        cp "${module_files[@]}" lib/modules/
 
         # rewrite modules.dep for GKI /lib/modules/*.ko structure
-        cp "$HERE/ramdisk-overlay"/lib/modules/modules.dep "$HERE/ramdisk-overlay"/lib/modules/modules.dep.orig
+        cp lib/modules/modules.dep lib/modules/modules.dep.orig
         while read -r line; do
             printf '/lib/modules/%s:' "$(basename ${line%:*})"
             deps="${line#*:}"
@@ -106,24 +118,10 @@ if [ -d "$HERE/ramdisk-overlay" ]; then
                 done
             fi
             echo
-        done < "$HERE/ramdisk-overlay"/lib/modules/modules.dep.orig | tee "$HERE/ramdisk-overlay"/lib/modules/modules.dep
+        done < lib/modules/modules.dep.orig | tee lib/modules/modules.dep
     fi
 
-    if [ "$deviceinfo_bootimg_header_version" -le 2 ]; then
-        find . | cpio -o -H newc | $COMPRESSION_CMD >> "$RAMDISK"
-    else
-        find . | cpio -o -H newc | $COMPRESSION_CMD > "${RAMDISK}-vendor"
-    fi
-
-    # Cleanup ramdisk-overlay dir
-    if [[ -f "$HERE/ramdisk-overlay"/lib/modules/modules.load && "$deviceinfo_kernel_disable_modules" != "true" ]]; then
-        rm -f "$HERE/ramdisk-overlay"/lib/modules/{modules.{alias,*dep*},*.ko}
-    fi
-
-    # Restore unoverlayed recovery ramdisk
-    if [ -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ] && [ -f "$TMPDOWN/ramdisk-recovery.img-original" ]; then
-        mv "$TMPDOWN/ramdisk-recovery.img-original" "$HERE/ramdisk-overlay/ramdisk-recovery.img"
-    fi
+    find . | cpio -o -H newc | $COMPRESSION_CMD >> "$VENDOR_RAMDISK"
 fi
 
 if [ -n "$deviceinfo_kernel_image_name" ]; then
@@ -191,7 +189,10 @@ if [ "$deviceinfo_bootimg_header_version" -le 2 ]; then
     mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
 else
     mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
-    mkbootimg --ramdisk_type platform --ramdisk_name '' --vendor_ramdisk_fragment "${RAMDISK}-vendor" --vendor_cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version --vendor_boot "$(dirname "$OUT")/vendor_$(basename "$OUT")" $EXTRA_VENDOR_ARGS
+
+    if [ -n "$VENDOR_RAMDISK" ]; then
+        mkbootimg --ramdisk_type platform --ramdisk_name '' --vendor_ramdisk_fragment "$VENDOR_RAMDISK" --vendor_cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version --vendor_boot "$(dirname "$OUT")/vendor_$(basename "$OUT")" $EXTRA_VENDOR_ARGS
+    fi
 fi
 
 if [ -n "$deviceinfo_bootimg_partition_size" ]; then

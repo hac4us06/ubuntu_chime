@@ -49,6 +49,7 @@ flashable:
   artifacts:
     paths:
       - out/boot.img
+      - out/vendor_boot.img
       - out/system.img
   when: manual
 
@@ -70,6 +71,7 @@ devel-flashable:
   artifacts:
     paths:
       - out/boot.img
+      - out/vendor_boot.img
       - out/ubuntu.img
 
 devel-flashable-focal:

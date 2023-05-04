@@ -55,7 +55,7 @@ echo "ro.product.model=$deviceinfo_name" >> prop.default
 echo "ro.product.name=halium_$deviceinfo_codename" >> prop.default
 [ "$HAS_DYNAMIC_PARTITIONS" = true ] && echo "ro.boot.dynamic_partitions=true" >> prop.default
 
-find . | cpio -o -H newc | $COMPRESSION_CMD > "$TMPDOWN/ramdisk-recovery.img-merged"
+find . | cpio -o -H newc | gzip -9 > "$TMPDOWN/ramdisk-recovery.img-merged"
 EOF
     if [ ! -f "$HERE/ramdisk-overlay/ramdisk-recovery.img" ]; then
         RECOVERY_RAMDISK="$TMPDOWN/ramdisk-recovery.img-merged"

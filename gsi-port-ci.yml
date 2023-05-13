@@ -13,7 +13,7 @@ variables:
   # Set to 1 to also produce devel-flashable image with Focal rootfs
   BUILD_DEVEL_FLASHABLE_FOCAL: 0
 
-image: ubuntu:20.04
+image: ubuntu:22.04
 
 build:
   stage: build
@@ -22,7 +22,7 @@ build:
     - >-
       apt install -y --no-install-recommends
       android-tools-mkbootimg bc bison build-essential ca-certificates cpio curl
-      fakeroot flex git kmod libssl-dev libtinfo5 lz4 python-is-python2 sudo unzip wget xz-utils
+      fakeroot flex git kmod libssl-dev libtinfo5 lz4 python2 sudo unzip wget xz-utils
     - wget https://raw.githubusercontent.com/LineageOS/android_system_tools_mkbootimg/lineage-19.1/mkbootimg.py -O /usr/bin/mkbootimg
     - >-
       git clone -b $ADAPTATION_TOOLS_BRANCH

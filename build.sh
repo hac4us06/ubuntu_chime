@@ -122,6 +122,9 @@ else
     ln -sf "device_${deviceinfo_codename}.tar.xz" "${OUT}/device_${deviceinfo_codename}_usrmerge.tar.xz"
 fi
 
+# Upload Module.symvers to artifacts for GKI debugging
+[ -f "${TMPDOWN}/KERNEL_OBJ/Module.symvers" ] && cp "${TMPDOWN}/KERNEL_OBJ/Module.symvers" "${OUT}"
+
 if [ -z "$BUILD_DIR" ]; then
     rm -r "${TMP}"
     rm -r "${TMPDOWN}"

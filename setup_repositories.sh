@@ -102,7 +102,7 @@ setup_clang() {
     fi
 
     if [ -n "$deviceinfo_kernel_use_lld" ] && $deviceinfo_kernel_use_lld; then
-        export LD=ld.ldd
+        export LD=ld.lld
     fi
 }
 

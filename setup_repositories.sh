@@ -126,6 +126,10 @@ setup_tooling() {
         export DTC_EXT="$TMPDOWN/dtc_ext"
     fi
 
+    if [ -n "$deviceinfo_kernel_llvm_compile" ] && $deviceinfo_kernel_llvm_compile; then
+        clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/build-tools" "master-kernel-build-2021"
+    fi
+
     if [ -n "$deviceinfo_bootimg_append_vbmeta" ] && $deviceinfo_bootimg_append_vbmeta; then
         if [ -f "vbmeta.img" ]; then
             print_info "vbmeta.img - already exists, skipping download"

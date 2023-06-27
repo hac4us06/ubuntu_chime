@@ -59,10 +59,7 @@ fi
 if $deviceinfo_kernel_clang_compile; then
     if [ -n "$deviceinfo_kernel_llvm_compile" ] && $deviceinfo_kernel_llvm_compile; then
         # Restrict available binaries in PATH to make builds less susceptible to host differences
-        ALLOWED_HOST_TOOLS="awk basename bash bc bison cat cmp cp cpio date whoami cut dirname \
-            egrep echo expr find flex git grep gzip head ln ls make md5sum mkdir mktemp mv perl \
-            python python2 nproc readlink rm sed sh sha1sum sort tail tar touch tr true uname uniq \
-            wc which xargs xz"
+        ALLOWED_HOST_TOOLS="bash git perl sh tar"
 
         HOST_TOOLS=${TMPDOWN}/host_tools
         rm -rf ${HOST_TOOLS}
@@ -72,7 +69,16 @@ if $deviceinfo_kernel_clang_compile; then
             ln -sf $(which $tool) ${HOST_TOOLS}
         done
 
-        PATH="$CLANG_PATH/bin:${HOST_TOOLS}" \
+        BUILD_TOOLS_BIN="${TMPDOWN}/build-tools/linux-x86/bin"
+        BUILD_TOOLS_PATH="${TMPDOWN}/build-tools/path/linux-x86"
+
+        EXTRA_TOYBOX_TOOLS="expr nproc tr"
+        for tool in ${EXTRA_TOYBOX_TOOLS}
+        do
+            ln -sf ../../linux-x86/bin/toybox "${BUILD_TOOLS_PATH}/${tool}"
+        done
+
+        PATH="$CLANG_PATH/bin:${BUILD_TOOLS_BIN}:${BUILD_TOOLS_PATH}:${HOST_TOOLS}" \
             "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system" "${MENUCONFIG}"
     else
         CC=clang \

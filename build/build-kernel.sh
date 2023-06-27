@@ -45,6 +45,8 @@ if [ -n "$LD" ]; then
 fi
 if [ -n "$deviceinfo_kernel_llvm_compile" ] && $deviceinfo_kernel_llvm_compile; then
     MAKEOPTS+=" LLVM=1 LLVM_IAS=1"
+     # Have host compiler use LLD and compiler-rt.
+    export HOSTLDFLAGS="-fuse-ld=lld --rtlib=compiler-rt"
 fi
 
 cd "$KERNEL_DIR"

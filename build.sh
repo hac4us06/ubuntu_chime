@@ -57,10 +57,28 @@ if [ -n "$deviceinfo_kernel_apply_overlay" ] && $deviceinfo_kernel_apply_overlay
 fi
 
 if $deviceinfo_kernel_clang_compile; then
-    CC=clang \
-    CLANG_TRIPLE=${deviceinfo_arch}-linux-gnu- \
-    PATH="$CLANG_PATH/bin:$GCC_PATH/bin:$GCC_ARM32_PATH/bin:${PATH}" \
-        "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system" "${MENUCONFIG}"
+    if [ -n "$deviceinfo_kernel_llvm_compile" ] && $deviceinfo_kernel_llvm_compile; then
+        # Restrict available binaries in PATH to make builds less susceptible to host differences
+        ALLOWED_HOST_TOOLS="awk basename bash bc bison cat cmp cp cpio date whoami cut dirname \
+            egrep echo expr find flex git grep gzip head ln ls make md5sum mkdir mktemp mv perl \
+            python python2 nproc readlink rm sed sh sha1sum sort tail tar touch tr true uname uniq \
+            wc which xargs xz"
+
+        HOST_TOOLS=${TMPDOWN}/host_tools
+        rm -rf ${HOST_TOOLS}
+        mkdir -p ${HOST_TOOLS}
+        for tool in ${ALLOWED_HOST_TOOLS}
+        do
+            ln -sf $(which $tool) ${HOST_TOOLS}
+        done
+
+        PATH="$CLANG_PATH/bin:${HOST_TOOLS}" \
+            "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system" "${MENUCONFIG}"
+    else
+        CC=clang \
+            PATH="$CLANG_PATH/bin:$GCC_PATH/bin:$GCC_ARM32_PATH/bin:${PATH}" \
+            "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system" "${MENUCONFIG}"
+    fi
 else
     PATH="$GCC_PATH/bin:$GCC_ARM32_PATH/bin:${PATH}" \
         "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system" "${MENUCONFIG}"

@@ -20,7 +20,7 @@ clone_if_not_existing() {
     if [ -d "$repo_name" ]; then
         print_info "$repo_name - already exists, skipping download"
     else
-        git clone "$repo_url" -b "$repo_branch" --depth 1 --recursive
+        git clone "$repo_url" -b "$repo_branch" "$repo_name" --depth 1 --recursive
     fi
 }
 
@@ -86,6 +86,10 @@ setup_clang() {
             CLANG_BRANCH="android12L-gsi"
             CLANG_REVISION="r416183b"
             ;;
+        13)
+            CLANG_BRANCH="master-kernel-build-2022"
+            CLANG_REVISION="r450784e"
+            ;;
         *)
             print_error "Clang is not supported with halium version '$deviceinfo_halium_version'"
             exit 1
@@ -127,7 +131,22 @@ setup_tooling() {
     fi
 
     if [ -n "$deviceinfo_kernel_llvm_compile" ] && $deviceinfo_kernel_llvm_compile; then
-        clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/build-tools" "master-kernel-build-2021"
+        case "$deviceinfo_halium_version" in
+            12)
+                BUILD_TOOLS_BRANCH="master-kernel-build-2021"
+                ;;
+            13)
+                BUILD_TOOLS_BRANCH="master-kernel-build-2022"
+                ;;
+            *)
+                BUILD_TOOLS_BRANCH="main-kernel-build-2023"
+                ;;
+        esac
+
+        if [ -n "$BUILD_TOOLS_BRANCH" ]; then
+            clone_if_not_existing "https://android.googlesource.com/platform/prebuilts/build-tools" "$BUILD_TOOLS_BRANCH"
+            clone_if_not_existing "https://android.googlesource.com/kernel/prebuilts/build-tools" "$BUILD_TOOLS_BRANCH" "kernel-build-tools"
+        fi
     fi
 
     if [ -n "$deviceinfo_bootimg_append_vbmeta" ] && $deviceinfo_bootimg_append_vbmeta; then

@@ -72,13 +72,15 @@ if $deviceinfo_kernel_clang_compile; then
         BUILD_TOOLS_BIN="${TMPDOWN}/build-tools/linux-x86/bin"
         BUILD_TOOLS_PATH="${TMPDOWN}/build-tools/path/linux-x86"
 
-        EXTRA_TOYBOX_TOOLS="expr nproc tr"
+        EXTRA_TOYBOX_TOOLS="dd expr nproc tr"
         for tool in ${EXTRA_TOYBOX_TOOLS}
         do
             ln -sf ../../linux-x86/bin/toybox "${BUILD_TOOLS_PATH}/${tool}"
         done
 
-        PATH="$CLANG_PATH/bin:${BUILD_TOOLS_BIN}:${BUILD_TOOLS_PATH}:${HOST_TOOLS}" \
+        KERNEL_BUILD_TOOLS_BIN="${TMPDOWN}/kernel-build-tools/linux-x86/bin"
+
+        PATH="$CLANG_PATH/bin:${BUILD_TOOLS_BIN}:${BUILD_TOOLS_PATH}:${KERNEL_BUILD_TOOLS_BIN}:${HOST_TOOLS}" \
             "$SCRIPT/build-kernel.sh" "${TMPDOWN}" "${TMP}/system" "${MENUCONFIG}"
     else
         CC=clang \

@@ -59,7 +59,7 @@ fi
 if $deviceinfo_kernel_clang_compile; then
     if [ -n "$deviceinfo_kernel_llvm_compile" ] && $deviceinfo_kernel_llvm_compile; then
         # Restrict available binaries in PATH to make builds less susceptible to host differences
-        ALLOWED_HOST_TOOLS="bash git perl sh tar"
+        ALLOWED_HOST_TOOLS="bash git perl sh sync tar"
 
         HOST_TOOLS=${TMPDOWN}/host_tools
         rm -rf ${HOST_TOOLS}

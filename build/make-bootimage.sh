@@ -158,7 +158,12 @@ elif [ -n "$deviceinfo_dtb" ]; then
     DTB="$KERNEL_OBJ/../$deviceinfo_codename.dtb"
     PREFIX=$KERNEL_OBJ/arch/$ARCH/boot/dts/
     DTBS="$PREFIX${deviceinfo_dtb// / $PREFIX}"
-    cat $DTBS > $DTB
+    if [ -n "$deviceinfo_dtb_has_dt_table" ] && $deviceinfo_dtb_has_dt_table; then
+        echo "Appending DTB partition header to DTB"
+        python2 "$TMPDOWN/libufdt/utils/src/mkdtboimg.py" create "$DTB" $DTBS --id="$deviceinfo_dtb_id" --rev="$deviceinfo_dtb_rev" --custom0="$deviceinfo_dtb_custom0" --custom1="$deviceinfo_dtb_custom1" --custom2="$deviceinfo_dtb_custom2" --custom3="$deviceinfo_dtb_custom3"
+    else
+        cat $DTBS > $DTB
+    fi
 fi
 
 if [ -n "$deviceinfo_bootimg_prebuilt_dt" ]; then
@@ -201,7 +206,7 @@ else
     mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
 
     if [ -n "$VENDOR_RAMDISK" ]; then
-        mkbootimg --ramdisk_type platform --ramdisk_name '' --vendor_ramdisk_fragment "$VENDOR_RAMDISK" --vendor_cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version --vendor_boot "$(dirname "$OUT")/vendor_$(basename "$OUT")" $EXTRA_VENDOR_ARGS
+        mkbootimg --ramdisk_type platform --ramdisk_name '' --vendor_ramdisk_fragment "$VENDOR_RAMDISK" --vendor_cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version --vendor_boot "$(dirname "$OUT")/vendor_$(basename "$OUT")" --vendor_bootconfig ${HERE}/$deviceinfo_vendor_bootconfig_path $EXTRA_VENDOR_ARGS
     fi
 fi
 

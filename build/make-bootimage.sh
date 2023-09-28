@@ -188,6 +188,12 @@ else
     EXTRA_VENDOR_ARGS+=" --base $deviceinfo_flash_offset_base --kernel_offset $deviceinfo_flash_offset_kernel --ramdisk_offset $deviceinfo_flash_offset_ramdisk --tags_offset $deviceinfo_flash_offset_tags --pagesize $deviceinfo_flash_pagesize --dtb $DTB --dtb_offset $deviceinfo_flash_offset_dtb"
 fi
 
+if [ "$deviceinfo_bootimg_header_version" -eq 4 ]; then
+    if [ -n "$deviceinfo_vendor_bootconfig_path" ]; then
+        EXTRA_VENDOR_ARGS+=" --vendor_bootconfig ${HERE}/$deviceinfo_vendor_bootconfig_path"
+    fi
+fi
+
 if [ "$deviceinfo_bootimg_header_version" -eq 0 ] && [ -n "$DT" ]; then
     EXTRA_ARGS+=" --dt $DT"
 fi
@@ -206,7 +212,7 @@ else
     mkbootimg --kernel "$KERNEL" --ramdisk "$RAMDISK" --header_version $deviceinfo_bootimg_header_version -o "$OUT" --os_version $deviceinfo_bootimg_os_version --os_patch_level $deviceinfo_bootimg_os_patch_level $EXTRA_ARGS
 
     if [ -n "$VENDOR_RAMDISK" ]; then
-        mkbootimg --ramdisk_type platform --ramdisk_name '' --vendor_ramdisk_fragment "$VENDOR_RAMDISK" --vendor_cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version --vendor_boot "$(dirname "$OUT")/vendor_$(basename "$OUT")" --vendor_bootconfig ${HERE}/$deviceinfo_vendor_bootconfig_path $EXTRA_VENDOR_ARGS
+        mkbootimg --ramdisk_type platform --ramdisk_name '' --vendor_ramdisk_fragment "$VENDOR_RAMDISK" --vendor_cmdline "$deviceinfo_kernel_cmdline" --header_version $deviceinfo_bootimg_header_version --vendor_boot "$(dirname "$OUT")/vendor_$(basename "$OUT")" $EXTRA_VENDOR_ARGS
     fi
 fi
 

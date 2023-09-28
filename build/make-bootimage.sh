@@ -160,7 +160,7 @@ elif [ -n "$deviceinfo_dtb" ]; then
     DTBS="$PREFIX${deviceinfo_dtb// / $PREFIX}"
     if [ -n "$deviceinfo_dtb_has_dt_table" ] && $deviceinfo_dtb_has_dt_table; then
         echo "Appending DTB partition header to DTB"
-        python2 "$TMPDOWN/libufdt/utils/src/mkdtboimg.py" create "$DTB" $DTBS --id="$deviceinfo_dtb_id" --rev="$deviceinfo_dtb_rev" --custom0="$deviceinfo_dtb_custom0" --custom1="$deviceinfo_dtb_custom1" --custom2="$deviceinfo_dtb_custom2" --custom3="$deviceinfo_dtb_custom3"
+        python2 "$TMPDOWN/libufdt/utils/src/mkdtboimg.py" create "$DTB" $DTBS --id="${deviceinfo_dtb_id:-0x00000000}" --rev="${deviceinfo_dtb_rev:-0x00000000}" --custom0="${deviceinfo_dtb_custom0:-0x00000000}" --custom1="${deviceinfo_dtb_custom1:-0x00000000}" --custom2="${deviceinfo_dtb_custom2:-0x00000000}" --custom3="${deviceinfo_dtb_custom3:-0x00000000}"
     else
         cat $DTBS > $DTB
     fi

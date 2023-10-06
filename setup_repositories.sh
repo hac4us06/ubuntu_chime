@@ -156,6 +156,8 @@ setup_tooling() {
             wget https://dl.google.com/developers/android/qt/images/gsi/vbmeta.img
         fi
     fi
+
+    clone_if_not_existing "https://github.com/LineageOS/android_system_tools_mkbootimg" "lineage-20.0"
 }
 
 setup_kernel() {
